@@ -29,7 +29,7 @@ Zabbix source or check it out from
 
 > Any version higher than 2.2 (when loadable module support was added) will do. But you need to compile module using sources of the version you will be using it with!
 
-Place this folder in Zabbix source tree `src/modules/` alongside `dummy`.
+Place module source folder in Zabbix source tree `src/modules/` alongside `dummy`.
 
 Run `make` to build, it should produce `zaipcs.so`.
 
