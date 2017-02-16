@@ -57,8 +57,22 @@ if the module is loaded by agent.
 
 ### supported keys
 
-- [x] `ipcs-shmem-discovery`
-- [x] `ipcs-shmem-details[id,mode,option]`
+- [x] __`ipcs-shmem-discovery`__
+- [x] __`ipcs-shmem-details[id,mode,option]`__ - mimics `ipcs --shmems --id ...`
+
+__`id`__ - shared memory segment id
+
+`mode`        | `option`                             | result
+--------------|--------------------------------------|--------------------------------------
+`owner`       | `uid` <br> `gid`                     | owner's user id <br> owner's group id
+`creator`     | `uid` <br> `gid`                     | creator's user id <br> creator's group id
+`status`      | `dest` <br> `locked`                 | 1 if marked for destruction, 0 otherwise <br> 1 if locked, 0 otherwise
+`permissions` |                                      | access permissions
+`size`        |                                      | allocated bytes
+`time`        | `attach` <br> `detach` <br> `change` | timestamp of the last attachment, 0 if not set <br> timestamp of the last detachment, 0 if not set <br> timestamp of the last change, 0 if not set
+`pid`         | `creator` <br> `last`                | creator process id <br> last attached or detached process id
+`nattch`      |                                      | number of currect attaches
+
 - [ ] `ipcs-queue-discovery`
 - [ ] `ipcs-queue-details[id,mode,option]`
 - [ ] `ipcs-semaphore-discovery`
