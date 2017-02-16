@@ -22,6 +22,13 @@ On Linux it additionally supports
 
 ## compile
 
+[Download](http://www.zabbix.com/download)
+Zabbix source or check it out from
+[SVN repository](https://www.zabbix.org/websvn/wsvn/zabbix.com?):
+`svn checkout svn://svn.zabbix.com/branches/3.2`
+
+> Any version higher than 2.2 (when loadable module support was added) will do. But you need to compile module using sources of the version you will be using it with!
+
 Place this folder in Zabbix source tree `src/modules/` alongside `dummy`.
 
 Run `make` to build, it should produce `zaipcs.so`.
@@ -50,9 +57,12 @@ if the module is loaded by agent.
 
 ### supported keys
 
-`ipcs-shmem-discovery`
-
-`ipcs-shmem-details[id,mode,option]`
+- [x] `ipcs-shmem-discovery`
+- [x] `ipcs-shmem-details[id,mode,option]`
+- [ ] `ipcs-queue-discovery`
+- [ ] `ipcs-queue-details[id,mode,option]`
+- [ ] `ipcs-semaphore-discovery`
+- [ ] `ipcs-semaphore-details[id,mode,option]`
 
 ### error messages
 
