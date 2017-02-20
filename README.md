@@ -40,11 +40,11 @@ Copy `zaipcs.so` it to a desired location, set up necessary permissions.
 ## configure
 
 Set `LoadModulePath` and `LoadModule` parameters in Zabbix
-[agent](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_agentd)/
-[proxy](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_proxy)/
+[agent](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_agentd) /
+[proxy](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_proxy) /
 [server](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_server) configuration file.
 
-Restart Zabbix agent/proxy/server.
+Restart Zabbix agent / proxy / server.
 
 ## use
 
@@ -55,12 +55,11 @@ use item type
 [_Zabbix agent_ or _Zabbix agent (active)_](https://www.zabbix.com/documentation/3.2/manual/config/items/itemtypes/zabbix_agent)
 if the module is loaded by agent.
 
-### supported keys
+### supported item keys
 
-- [x] __`ipcs-shmem-discovery`__
 - [x] __`ipcs-shmem-details[id,mode,option]`__ - mimics `ipcs --shmems --id ...`
 
-__`id`__ - shared memory segment id
+__`id`__ - shared memory segment identifier
 
 `mode`        | `option`                             | result
 --------------|--------------------------------------|--------------------------------------
@@ -73,10 +72,40 @@ __`id`__ - shared memory segment id
 `pid`         | `creator` <br> `last`                | creator process id <br> last attached or detached process id
 `nattch`      |                                      | number of currect attaches
 
-- [ ] `ipcs-queue-discovery`
 - [ ] `ipcs-queue-details[id,mode,option]`
-- [ ] `ipcs-semaphore-discovery`
-- [ ] `ipcs-semaphore-details[id,mode,option]`
+
+- [x] __`ipcs-semaphore-details[id,mode,option]`__ - mimics `ipcs --semaphores --id ...`
+
+__`id`__ - semaphore array identifier
+
+`mode`        | `option`                    | result
+--------------|-----------------------------|--------------------------------------
+`owner`       | `uid` <br> `gid`            | owner's user id <br> owner's group id
+`creator`     | `uid` <br> `gid`            | creator's user id <br> creator's group id
+`permissions` |                             | access permissions
+`time`        | `semop` <br> `change`       | timestamp of the last semaphore operation, 0 if not set <br> timestamp of the last change, 0 if not set
+`nsems`       |                             | number of semaphores in set
+`ncount`      | `sum` <br> `max` <br> `idx` | total number of processes waiting for an increase of semaphore values <br> maximum number of processes waiting for an increase of the semaphore value <br> index of the semaphore with the most processes waiting for semaphore value to increase
+`zcount`      | `sum` <br> `max` <br> `idx` | total number of processes waiting for semaphore values to become 0 <br> maximum number of processes waiting for the semaphore value to become 0 <br> index of the semaphore with the most processes waiting for semaphore value to become 0
+
+### supported discovery rules
+
+> These keys use non-standard Linux-specific calls and may not be universally supported
+
+- [x] __`ipcs-shmem-discovery`__
+
+- [ ] `ipcs-queue-discovery`
+
+- [x] __`ipcs-semaphore-discovery`__
+
+These keys can accept parameters, but ignore them. This way you can set up several discoveries on the same template or host without many troubles. Low level discovery provudes the following macros:
+
+`{#MACRO}` | value
+-----------|----------------------------------------------------
+`{#KEY}`   | key supplied to `shmget(2)`/`msgget(2)`/`semget(2)`
+`{#ID}`    | resource identifier (can be supplied as __`id`__ to __`ipcs-...-details[...]`__)
+`{#OWNER}` | owner's user id
+`{#PERMS}` | access permissions (three octal digits)
 
 ### error messages
 
@@ -91,6 +120,8 @@ __`id`__ - shared memory segment id
 * _"not supported on this platform"_ - author does not know yet how to implement feature on your platform, you can assist by providing documentation and/or testing
 
 * various errors from system...
+
+> Zabbix agent / proxy / server needs at least read permissions to discover and obtain details of IPC resources!
 
 ## templates
 
