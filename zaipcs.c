@@ -10,6 +10,21 @@
 #include "sysinc.h"
 #include "module.h"
 
+/* POSIX.1 requires that the caller define this union. */
+/* On versions of  glibc  where  this  union  is  not  */
+/* defined, the macro _SEM_SEMUN_UNDEFINED is defined. */
+#ifdef _SEM_SEMUN_UNDEFINED
+union semun
+{
+	int		val;	/* Value for SETVAL */
+	struct semid_ds	*buf;	/* Buffer for IPC_STAT, IPC_SET */
+	unsigned short	*array;	/* Array for GETALL, SETALL */
+#ifdef IPC_INFO
+	struct seminfo	*__buf;	/* Buffer for IPC_INFO (Linux-specific) */
+#endif
+};
+#endif
+
 /* some bureaucracy */
 
 int	zbx_module_api_version(void)
@@ -115,7 +130,7 @@ static int	ipcs_shmem_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 		if (-1 == (shmid = shmctl(idx, SHM_STAT, &shmid_ds)))
 			continue;
 
-		ipcs_strappf(&json, &json_size, &json_offset, "%s" LLD_JSON_ROW, delim, 
+		ipcs_strappf(&json, &json_size, &json_offset, "%s" LLD_JSON_ROW, delim,
 				shmid_ds.shm_perm.__key, shmid, shmid_ds.shm_perm.uid, shmid_ds.shm_perm.mode & 0777);
 
 		if (NULL == json)
@@ -148,10 +163,64 @@ static int	ipcs_shmem_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 // {
 // }
 
-//TODO
-// static int	ipcs_semaphore_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
-// {
-// }
+static int	ipcs_semaphore_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
+{
+#if defined(SEM_INFO) && defined(SEM_STAT)
+	const char	*delim = "";
+	char		*json = NULL;
+	size_t		json_size = 0, json_offset = 0;
+	int		maxidx, idx, semid;
+	struct semid_ds	semid_ds;
+	union semun	semid_un;
+
+	semid_un.buf = &semid_ds;
+
+	if (-1 == (maxidx = semctl(0, 0, SEM_INFO, semid_un)))
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	ipcs_strappf(&json, &json_size, &json_offset, LLD_JSON_PRE);
+
+	if (NULL == json)
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	for (idx = 0; idx <= maxidx; idx++)
+	{
+		if (-1 == (semid = semctl(idx, 0, SEM_STAT, semid_un)))
+			continue;
+
+		ipcs_strappf(&json, &json_size, &json_offset, "%s" LLD_JSON_ROW, delim,
+				semid_ds.sem_perm.__key, semid, semid_ds.sem_perm.uid, semid_ds.sem_perm.mode & 0777);
+
+		if (NULL == json)
+		{
+			SET_MSG_RESULT(result, IPCS_ESYSERROR);
+			return SYSINFO_RET_FAIL;
+		}
+
+		delim = ",";
+	}
+
+	ipcs_strappf(&json, &json_size, &json_offset, LLD_JSON_END);
+
+	if (NULL == json)
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	SET_TEXT_RESULT(result, json);
+	return SYSINFO_RET_OK;
+#else
+	SET_MSG_RESULT(result, IPCS_EPLATFORM);
+	return SYSINFO_RET_FAIL;
+#endif
+}
 
 /* details */
 
@@ -393,10 +462,208 @@ static int	ipcs_shmem_details(AGENT_REQUEST *request, AGENT_RESULT *result)
 // {
 // }
 
-//TODO
-// static int	ipcs_semaphore_details(AGENT_REQUEST *request, AGENT_RESULT *result)
-// {
-// }
+static int	ipcs_semaphore_loop(int semid, int nsems, int cmd, const char *option, AGENT_RESULT *result)
+{
+	union semun	semid_un;
+
+	if (NULL == option || '\0' == *option || 0 == strcmp(option, "sum"))
+	{
+		int	i, res, sum = 0;
+
+		for (i = 0; i < nsems; i++)
+		{
+			if (-1 == (res = semctl(semid, i, cmd, semid_un)))
+				goto syserr;
+
+			sum += res;
+		}
+
+		SET_UI64_RESULT(result, sum);
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(option, "max"))
+	{
+		int	i, res, max = 0;
+
+		for (i = 0; i < nsems; i++)
+		{
+			if (-1 == (res = semctl(semid, i, cmd, semid_un)))
+				goto syserr;
+
+			if (res > max)
+				max = res;
+		}
+
+		SET_UI64_RESULT(result, max);
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(option, "idx"))
+	{
+		int	i, res, idx = 0, max = 0;
+
+		for (i = 0; i < nsems; i++)
+		{
+			if (-1 == (res = semctl(semid, i, cmd, semid_un)))
+				goto syserr;
+
+			if (res > max)
+				max = res, idx = i;
+		}
+
+		SET_UI64_RESULT(result, idx);
+		return SYSINFO_RET_OK;
+	}
+
+	SET_MSG_RESULT(result, IPCS_EINVALOPT);
+	return SYSINFO_RET_FAIL;
+syserr:
+	SET_MSG_RESULT(result, IPCS_ESYSERROR);
+	return SYSINFO_RET_FAIL;
+}
+
+static int	ipcs_semaphore_details(AGENT_REQUEST *request, AGENT_RESULT *result)
+{
+	const char	*mode, *option;
+	int		semid;
+	struct semid_ds	semid_ds;
+	union semun	semid_un;
+
+	if (IPCS_OK != ipcs_request_parse(request, result, &semid, &mode, &option))
+		return SYSINFO_RET_FAIL;
+
+	semid_un.buf = &semid_ds;
+
+	if (-1 == semctl(semid, 0, IPC_STAT, semid_un))
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (NULL == mode)
+	{
+		SET_MSG_RESULT(result, IPCS_EINVALMOD);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "owner"))
+	{
+		if (NULL == option || '\0' == *option || 0 == strcmp(option, "user"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "group"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "uid"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_perm.uid);	/* Effective UID of owner */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "gid"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_perm.gid);	/* Effective GID of owner */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "creator"))
+	{
+		if (NULL == option || '\0' == *option || 0 == strcmp(option, "user"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "group"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "uid"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_perm.cuid);	/* Effective UID of creator */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "gid"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_perm.cgid);	/* Effective GID of creator */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "permissions"))
+	{
+		if (NULL != option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		SET_UI64_RESULT(result, semid_ds.sem_perm.mode & 0777);	/* Permissions */
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(mode, "time"))
+	{
+		if (NULL == option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "semop"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_otime);	/* Last semop time */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "change"))
+		{
+			SET_UI64_RESULT(result, semid_ds.sem_ctime);	/* Last change time */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "nsems"))
+	{
+		if (NULL != option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		SET_UI64_RESULT(result, semid_ds.sem_nsems);	/* No. of semaphores in set */
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(mode, "ncount"))
+		return ipcs_semaphore_loop(semid, semid_ds.sem_nsems, GETNCNT, option, result);
+
+	if (0 == strcmp(mode, "zcount"))
+		return ipcs_semaphore_loop(semid, semid_ds.sem_nsems, GETZCNT, option, result);
+
+	SET_MSG_RESULT(result, IPCS_EINVALMOD);
+	return SYSINFO_RET_FAIL;
+}
 
 /* some more bureaucracy */
 
@@ -413,8 +680,10 @@ ZBX_METRIC	*zbx_module_item_list(void)
 // 		{"ipcs-queue-discovery",	CF_HAVEPARAMS,	ipcs_queue_discovery,		NULL},
 // 		{"ipcs-queue-details",		CF_HAVEPARAMS,	ipcs_queue_details,		"0"},
 
-// 		{"ipcs-semaphore-discovery",	CF_HAVEPARAMS,	ipcs_semaphore_discovery,	NULL},
-// 		{"ipcs-semaphore-details",	CF_HAVEPARAMS,	ipcs_semaphore_details,		"0"},
+	{"ipcs-semaphore-discovery",	CF_HAVEPARAMS,	ipcs_semaphore_discovery,	NULL},
+		{"ipcs-semaphore-details",	CF_HAVEPARAMS,	ipcs_semaphore_details,		"0,nsems"},
+		//TODO sem limits
+		//TODO sem summary
 
 		{NULL}
 	};
