@@ -48,10 +48,11 @@ Restart Zabbix agent / proxy / server.
 
 ## use
 
-Configure checks: use item type
+Configure checks:
+* use item type
 [_Simple check_](https://www.zabbix.com/documentation/3.2/manual/config/items/itemtypes/simple_checks)
 if the module is loaded by server or proxy;
-use item type
+* use item type
 [_Zabbix agent_ or _Zabbix agent (active)_](https://www.zabbix.com/documentation/3.2/manual/config/items/itemtypes/zabbix_agent)
 if the module is loaded by agent.
 
