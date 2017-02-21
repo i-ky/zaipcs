@@ -158,10 +158,61 @@ static int	ipcs_shmem_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 #endif
 }
 
-//TODO
-// static int	ipcs_queue_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
-// {
-// }
+static int	ipcs_queue_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
+{
+#if defined(MSG_INFO) && defined(MSG_STAT)
+	const char	*delim = "";
+	char		*json = NULL;
+	size_t		json_size = 0, json_offset = 0;
+	int		maxidx, idx, msqid;
+	struct msqid_ds	msqid_ds;
+
+	if (-1 == (maxidx = msgctl(0, MSG_INFO, &msqid_ds)))
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	ipcs_strappf(&json, &json_size, &json_offset, LLD_JSON_PRE);
+
+	if (NULL == json)
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	for (idx = 0; idx <= maxidx; idx++)
+	{
+		if (-1 == (msqid = msgctl(idx, MSG_STAT, &msqid_ds)))
+			continue;
+
+		ipcs_strappf(&json, &json_size, &json_offset, "%s" LLD_JSON_ROW, delim,
+				msqid_ds.msg_perm.__key, msqid, msqid_ds.msg_perm.uid, msqid_ds.msg_perm.mode & 0777);
+
+		if (NULL == json)
+		{
+			SET_MSG_RESULT(result, IPCS_ESYSERROR);
+			return SYSINFO_RET_FAIL;
+		}
+
+		delim = ",";
+	}
+
+	ipcs_strappf(&json, &json_size, &json_offset, LLD_JSON_END);
+
+	if (NULL == json)
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	SET_TEXT_RESULT(result, json);
+	return SYSINFO_RET_OK;
+#else
+	SET_MSG_RESULT(result, IPCS_EPLATFORM);
+	return SYSINFO_RET_FAIL;
+#endif
+}
 
 static int	ipcs_semaphore_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
@@ -454,13 +505,183 @@ static int	ipcs_shmem_details(AGENT_REQUEST *request, AGENT_RESULT *result)
 	}
 
 	SET_MSG_RESULT(result, IPCS_EINVALMOD);
-	return SYSINFO_RET_FAIL;	
+	return SYSINFO_RET_FAIL;
 }
 
-//TODO
-// static int	ipcs_queue_details(AGENT_REQUEST *request, AGENT_RESULT *result)
-// {
-// }
+static int	ipcs_queue_details(AGENT_REQUEST *request, AGENT_RESULT *result)
+{
+	const char	*mode, *option;
+	int		msqid;
+	struct msqid_ds	msqid_ds;
+
+	if (IPCS_OK != ipcs_request_parse(request, result, &msqid, &mode, &option))
+		return SYSINFO_RET_FAIL;
+
+	if (-1 == msgctl(msqid, IPC_STAT, &msqid_ds))
+	{
+		SET_MSG_RESULT(result, IPCS_ESYSERROR);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (NULL == mode)
+	{
+		SET_MSG_RESULT(result, IPCS_EINVALMOD);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "owner"))
+	{
+		if (NULL == option || '\0' == *option || 0 == strcmp(option, "user"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "group"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "uid"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_perm.uid);	/* Effective UID of owner */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "gid"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_perm.gid);	/* Effective GID of owner */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "creator"))
+	{
+		if (NULL == option || '\0' == *option || 0 == strcmp(option, "user"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "group"))
+		{
+			//TODO
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "uid"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_perm.cuid);	/* Effective UID of creator */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "gid"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_perm.cgid);	/* Effective GID of creator */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "permissions"))
+	{
+		if (NULL != option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		SET_UI64_RESULT(result, msqid_ds.msg_perm.mode & 0777);	/* Permissions */
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(mode, "time"))
+	{
+		if (NULL == option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "send"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_stime);	/* Time of last msgsnd(2) */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "receive"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_rtime);	/* Time of last msgrcv(2) */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "change"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_ctime);	/* Time of last change */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	if (0 == strcmp(mode, "messages"))
+	{
+		if (NULL != option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		SET_UI64_RESULT(result, msqid_ds.msg_qnum);	/* Current number of messages in queue */
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(mode, "size"))
+	{
+		if (NULL != option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		SET_UI64_RESULT(result, msqid_ds.msg_qbytes);	/* Maximum number of bytes allowed in queue */
+		return SYSINFO_RET_OK;
+	}
+
+	if (0 == strcmp(mode, "pid"))
+	{
+		if (NULL == option)
+		{
+			SET_MSG_RESULT(result, IPCS_ENUMPARAM);
+			return SYSINFO_RET_FAIL;
+		}
+
+		if (0 == strcmp(option, "send"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_lspid);	/* PID of last msgsnd(2) */
+			return SYSINFO_RET_OK;
+		}
+
+		if (0 == strcmp(option, "receive"))
+		{
+			SET_UI64_RESULT(result, msqid_ds.msg_lrpid);	/* PID of last msgrcv(2) */
+			return SYSINFO_RET_OK;
+		}
+
+		SET_MSG_RESULT(result, IPCS_EINVALOPT);
+		return SYSINFO_RET_FAIL;
+	}
+
+	SET_MSG_RESULT(result, IPCS_EINVALMOD);
+	return SYSINFO_RET_FAIL;
+}
 
 static int	ipcs_semaphore_loop(int semid, int nsems, int cmd, const char *option, AGENT_RESULT *result)
 {
@@ -677,13 +898,15 @@ ZBX_METRIC	*zbx_module_item_list(void)
 		//TODO shmem limits
 		//TODO shmem summary
 
-// 		{"ipcs-queue-discovery",	CF_HAVEPARAMS,	ipcs_queue_discovery,		NULL},
-// 		{"ipcs-queue-details",		CF_HAVEPARAMS,	ipcs_queue_details,		"0"},
+		{"ipcs-queue-discovery",	CF_HAVEPARAMS,	ipcs_queue_discovery,		NULL},
+		{"ipcs-queue-details",		CF_HAVEPARAMS,	ipcs_queue_details,		"0,permissions"},
+		//TODO queue limits
+		//TODO queue summary
 
-	{"ipcs-semaphore-discovery",	CF_HAVEPARAMS,	ipcs_semaphore_discovery,	NULL},
+		{"ipcs-semaphore-discovery",	CF_HAVEPARAMS,	ipcs_semaphore_discovery,	NULL},
 		{"ipcs-semaphore-details",	CF_HAVEPARAMS,	ipcs_semaphore_details,		"0,nsems"},
-		//TODO sem limits
-		//TODO sem summary
+		//TODO semaphore limits
+		//TODO semaphore summary
 
 		{NULL}
 	};
