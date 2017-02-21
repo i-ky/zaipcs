@@ -58,32 +58,44 @@ if the module is loaded by agent.
 
 ### supported item keys
 
-- [x] __`ipcs-shmem-details[id,mode,option]`__ - mimics `ipcs --shmems --id ...`
+#### __`ipcs-shmem-details[id,mode,option]`__
 
-__`id`__ - shared memory segment identifier
+This key mimics `ipcs --shmems --id ...`. __`id`__ is a shared memory segment identifier. Possible combinations of __`mode`__ and __`option`__ with their resulting value are given in the table below.
 
 `mode`        | `option`                             | result
 --------------|--------------------------------------|--------------------------------------
 `owner`       | `uid` <br> `gid`                     | owner's user id <br> owner's group id
 `creator`     | `uid` <br> `gid`                     | creator's user id <br> creator's group id
 `status`      | `dest` <br> `locked`                 | 1 if marked for destruction, 0 otherwise <br> 1 if locked, 0 otherwise
-`permissions` |                                      | access permissions
+`permissions` |                                      | access permissions (three octal digits)
 `size`        |                                      | allocated bytes
 `time`        | `attach` <br> `detach` <br> `change` | timestamp of the last attachment, 0 if not set <br> timestamp of the last detachment, 0 if not set <br> timestamp of the last change, 0 if not set
 `pid`         | `creator` <br> `last`                | creator process id <br> last attached or detached process id
 `nattch`      |                                      | number of currect attaches
 
-- [ ] `ipcs-queue-details[id,mode,option]`
+#### __`ipcs-queue-details[id,mode,option]`__
 
-- [x] __`ipcs-semaphore-details[id,mode,option]`__ - mimics `ipcs --semaphores --id ...`
+This key mimics `ipcs --queues --id ...`. __`id`__ is a message queue identifier. Possible combinations of __`mode`__ and __`option`__ with their resulting value are given in the table below.
 
-__`id`__ - semaphore array identifier
+`mode`        | `option`                            | result
+--------------|-------------------------------------|--------------------------------------
+`owner`       | `uid` <br> `gid`                    | owner's user id <br> owner's group id
+`creator`     | `uid` <br> `gid`                    | creator's user id <br> creator's group id
+`permissions` |                                     | access permissions (three octal digits)
+`time`        | `send` <br> `receive` <br> `change` | timestamp of the last send operation, 0 if not set <br> timestamp of the last receive operation, 0 if not set <br> timestamp of the last change, 0 if not set
+`messages`    |                                     | current number of messages in queue
+`size`        |                                     | maximum number of bytes allowed in queue
+`pid`         | `send` <br> `receive`               | id of the process that performed the last send operation <br> id of the process that performed the last receive operation
+
+#### __`ipcs-semaphore-details[id,mode,option]`__
+
+This key mimics `ipcs --semaphores --id ...`. __`id`__ is a semaphore array identifier. Possible combinations of __`mode`__ and __`option`__ with their resulting value are given in the table below.
 
 `mode`        | `option`                    | result
 --------------|-----------------------------|--------------------------------------
 `owner`       | `uid` <br> `gid`            | owner's user id <br> owner's group id
 `creator`     | `uid` <br> `gid`            | creator's user id <br> creator's group id
-`permissions` |                             | access permissions
+`permissions` |                             | access permissions (three octal digits)
 `time`        | `semop` <br> `change`       | timestamp of the last semaphore operation, 0 if not set <br> timestamp of the last change, 0 if not set
 `nsems`       |                             | number of semaphores in set
 `ncount`      | `sum` <br> `max` <br> `idx` | total number of processes waiting for an increase of semaphore values <br> maximum number of processes waiting for an increase of the semaphore value <br> index of the semaphore with the most processes waiting for semaphore value to increase
@@ -93,13 +105,13 @@ __`id`__ - semaphore array identifier
 
 > These keys use non-standard Linux-specific calls and may not be universally supported
 
-- [x] __`ipcs-shmem-discovery`__
+#### __`ipcs-shmem-discovery`__ or __`ipcs-shmem-discovery[...]`__
 
-- [ ] `ipcs-queue-discovery`
+#### __`ipcs-queue-discovery`__ or __`ipcs-queue-discovery[...]`__
 
-- [x] __`ipcs-semaphore-discovery`__
+#### __`ipcs-semaphore-discovery`__ or __`ipcs-semaphore-discovery[...]`__
 
-These keys can accept parameters, but ignore them. This way you can set up several discoveries on the same template or host without many troubles. Low level discovery provudes the following macros:
+These keys can accept parameters, but ignore them. This way you can set up several discoveries on the same template or host without many troubles. Low level discovery provides the following macros:
 
 `{#MACRO}` | value
 -----------|----------------------------------------------------
@@ -112,11 +124,11 @@ These keys can accept parameters, but ignore them. This way you can set up sever
 
 * _"invalid resource identifier"_ - failed to read IPC resource id, it should be a nonnegative integer number
 
-* _"incorrect number of parameters"_ - misconfiguration
+* _"incorrect number of parameters"_ - misconfiguration, either too few or too many parameters (depends on `mode`)
 
-* _"invalid 'mode' parameter"_ - misconfiguration
+* _"invalid 'mode' parameter"_ - misconfiguration, `mode` parameter is not recognized
 
-* _"invalid 'option' parameter"_ - misconfiguration
+* _"invalid 'option' parameter"_ - misconfiguration, please refer to the tables of supported `option` and `mode` combinations
 
 * _"not supported on this platform"_ - author does not know yet how to implement feature on your platform, you can assist by providing documentation and/or testing
 
