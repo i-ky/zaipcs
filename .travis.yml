@@ -12,5 +12,7 @@ before_install:
 - sudo apt install subversion
 before_script:
 - svn export svn://svn.zabbix.com/$BRANCH zabbix
+- cd zabbix
+- ./configure
 script:
 - $CC -fPIC -shared -o zaipcs.so zaipcs.c -Izabbix/include
