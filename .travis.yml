@@ -1,0 +1,16 @@
+language: c
+compiler:
+- clang
+- gcc
+env:
+- BRANCH=trunk
+- BRANCH=branches/3.4
+- BRANCH=branches/3.0
+- BRANCH=branches/2.2
+sudo: true
+before_install:
+- sudo apt install subversion
+before_script:
+- svn export svn://svn.zabbix.com/$BRANCH zabbix
+script:
+- $CC -fPIC -shared -o zaipcs.so zaipcs.c -Izabbix/include
