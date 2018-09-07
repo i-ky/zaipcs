@@ -15,5 +15,6 @@ before_script:
 - cd zabbix
 - ./bootstrap.sh
 - ./configure
+- cd -
 script:
 - $CC -fPIC -shared -o zaipcs.so zaipcs.c -Izabbix/include
