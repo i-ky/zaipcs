@@ -35,7 +35,7 @@ Run `make` to build, it should produce `zaipcs.so`.
 
 ## install
 
-Copy `zaipcs.so` it to a desired location, set up necessary permissions.
+Copy `zaipcs.so` to a desired location, set up necessary permissions.
 
 ## configure
 
@@ -146,7 +146,7 @@ Author is too lazy and too arrogant to test the module properly. Therefore the b
 
 ### compilation and installation
 
-Module comes without `configure` script. `Makefile` is very primitive. Installation and configuration process is 100% manual. Luckily there is only one file and no dependencies, therefore, it should compile *easily* on on any Unix-like. Mind that author earns his money being C developer and finds compiling really easy. If you encounter any problems or simply disagree with his opinion, feel free to provide information about compilation errors, warnings and other issues on your platform.
+Module comes without `configure` script. `Makefile` is very primitive. Installation and configuration process is 100% manual. Luckily there is only one file and no dependencies, therefore, it should compile *easily* on on any Unix-like platform. Mind that author earns his money being C developer and finds compiling really easy. If you encounter any problems or simply disagree with his opinion, feel free to provide information about compilation errors, warnings and other issues on your platform.
 
 ### feature support
 
