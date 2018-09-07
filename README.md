@@ -1,7 +1,7 @@
-# zaipcs
+# zaipcs [![Build Status](https://www.travis-ci.com/i-ky/zaipcs.svg?branch=master)](https://www.travis-ci.com/i-ky/zaipcs)
 
 [Zabbix](http://www.zabbix.com)
-[loadable module](https://www.zabbix.com/documentation/3.2/manual/config/items/loadablemodules)
+[loadable module](https://www.zabbix.com/documentation/3.4/manual/config/items/loadablemodules)
 for monitoring
 [System V](https://en.wikipedia.org/wiki/UNIX_System_V)
 [IPC](https://en.wikipedia.org/wiki/Inter-process_communication)
@@ -18,14 +18,14 @@ and
 [semaphore](https://en.wikipedia.org/wiki/Semaphore_(programming)) sets
 given IPC object identifier.
 On Linux it additionally supports
-[low level discovery](https://www.zabbix.com/documentation/3.2/manual/discovery/low_level_discovery).
+[low level discovery](https://www.zabbix.com/documentation/3.4/manual/discovery/low_level_discovery).
 
 ## compile
 
 [Download](http://www.zabbix.com/download)
 Zabbix source or check it out from
 [SVN repository](https://www.zabbix.org/websvn/wsvn/zabbix.com?):
-`svn checkout svn://svn.zabbix.com/branches/3.2`
+`svn checkout svn://svn.zabbix.com/branches/3.4`
 
 > Any version higher than 2.2 (when loadable module support was added) will do. But you need to compile module using sources of the version you will be using it with!
 
@@ -40,9 +40,9 @@ Copy `zaipcs.so` it to a desired location, set up necessary permissions.
 ## configure
 
 Set `LoadModulePath` and `LoadModule` parameters in Zabbix
-[agent](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_agentd) /
-[proxy](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_proxy) /
-[server](https://www.zabbix.com/documentation/3.2/manual/appendix/config/zabbix_server) configuration file.
+[agent](https://www.zabbix.com/documentation/3.4/manual/appendix/config/zabbix_agentd) /
+[proxy](https://www.zabbix.com/documentation/3.4/manual/appendix/config/zabbix_proxy) /
+[server](https://www.zabbix.com/documentation/3.4/manual/appendix/config/zabbix_server) configuration file.
 
 Restart Zabbix agent / proxy / server.
 
@@ -50,10 +50,10 @@ Restart Zabbix agent / proxy / server.
 
 Configure checks:
 * use item type
-[_Simple check_](https://www.zabbix.com/documentation/3.2/manual/config/items/itemtypes/simple_checks)
+[_Simple check_](https://www.zabbix.com/documentation/3.4/manual/config/items/itemtypes/simple_checks)
 if the module is loaded by server or proxy;
 * use item type
-[_Zabbix agent_ or _Zabbix agent (active)_](https://www.zabbix.com/documentation/3.2/manual/config/items/itemtypes/zabbix_agent)
+[_Zabbix agent_ or _Zabbix agent (active)_](https://www.zabbix.com/documentation/3.4/manual/config/items/itemtypes/zabbix_agent)
 if the module is loaded by agent.
 
 ### supported item keys
