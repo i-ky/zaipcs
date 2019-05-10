@@ -2,6 +2,7 @@ language: c
 compiler:
 - clang
 - gcc
+dist: xenial
 env:
 - BRANCH=master
 - BRANCH=release/4.2
