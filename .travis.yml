@@ -3,15 +3,13 @@ compiler:
 - clang
 - gcc
 env:
-- BRANCH=trunk
-- BRANCH=branches/3.4
-- BRANCH=branches/3.0
-- BRANCH=branches/2.2
-sudo: true
-before_install:
-- sudo apt install subversion
+- BRANCH=master
+- BRANCH=release/4.2
+- BRANCH=release/4.0
+- BRANCH=release/3.0
+- BRANCH=release/2.2
 before_script:
-- svn export svn://svn.zabbix.com/$BRANCH zabbix
+- git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 --single-branch --branch $BRANCH
 - cd zabbix
 - ./bootstrap.sh
 - ./configure
