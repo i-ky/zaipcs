@@ -22,16 +22,29 @@ On Linux it additionally supports
 
 ## compile
 
-[Download](http://www.zabbix.com/download)
+1. [Download](http://www.zabbix.com/download)
 Zabbix source or check it out from
 [Git repository](https://git.zabbix.com/):
-`git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1`
+`git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 /path/to/zabbix/source`
 
 > Any version higher than 2.2 (when loadable module support was added) will do. But you need to compile module using sources of the version you will be using it with!
 
-Place module source folder in Zabbix source tree `src/modules/` alongside `dummy`.
+2. Configure Zabbix sources:
+```bash
+cd /path/to/zabbix/source
+./bootstrap.sh
+./configure
+```
 
-Run `make` to build, it should produce `zaipcs.so`.
+3. Get module sources,
+point them to Zabbix source directory
+and run `make` to build,
+it should produce `zaipcs.so` shared library.
+```bash
+cd /path/to/zaipcs/source
+export ZABBIX_SOURCE=/path/to/zabbix/source
+make
+```
 
 ## install
 

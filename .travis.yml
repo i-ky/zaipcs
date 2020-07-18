@@ -14,4 +14,4 @@ before_script:
 - ./configure
 - cd -
 script:
-- $CC -fPIC -shared -o zaipcs.so zaipcs.c -Izabbix/include
+- ZABBIX_SOURCE=zabbix CFLAGS='-Wall -Wextra -Wpedantic -g -O2' make

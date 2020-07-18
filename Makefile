@@ -1,2 +1,10 @@
-zaipcs: zaipcs.c
-	gcc -fPIC -shared -o zaipcs.so zaipcs.c -I../../../include
+CFLAGS:=-fPIC -I$(ZABBIX_SOURCE)/include $(CFLAGS)
+OBJECTS:=$(patsubst %.c,%.o,$(wildcard src/*.c))
+
+zaipcs.so: $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) $(LIBS) -shared -o $@
+
+all: zaipcs.so
+
+clean:
+	rm -rf $(OBJECTS) zaipcs.so
