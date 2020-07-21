@@ -1,4 +1,4 @@
-# zaipcs [![Build Status](https://www.travis-ci.com/i-ky/zaipcs.svg?branch=master)](https://www.travis-ci.com/i-ky/zaipcs)
+# zaipcs [![Build Status](https://www.travis-ci.com/i-ky/zaipcs.svg?branch=master)](https://www.travis-ci.com/i-ky/zaipcs) [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/i-ky/zaipcs)
 
 [Zabbix](http://www.zabbix.com)
 [loadable module](https://www.zabbix.com/documentation/current/manual/config/items/loadablemodules)
