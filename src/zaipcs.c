@@ -109,6 +109,7 @@ void	ipcs_strappf(char **old, size_t *old_size, size_t *old_offset, const char *
 #define LLD_JSON_END		"]"						\
 			"}"
 
+/* NOLINTNEXTLINE(misc-unused-parameters) */
 static int	ipcs_shmem_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 #if defined(SHM_INFO) && defined(SHM_STAT)
@@ -165,6 +166,7 @@ static int	ipcs_shmem_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 #endif
 }
 
+/* NOLINTNEXTLINE(misc-unused-parameters) */
 static int	ipcs_queue_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 #if defined(MSG_INFO) && defined(MSG_STAT)
@@ -221,6 +223,7 @@ static int	ipcs_queue_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 #endif
 }
 
+/* NOLINTNEXTLINE(misc-unused-parameters) */
 static int	ipcs_semaphore_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 #if defined(SEM_INFO) && defined(SEM_STAT)
@@ -295,6 +298,7 @@ static int	ipcs_request_parse(AGENT_REQUEST *request, AGENT_RESULT *result,
 		return IPCS_FAIL;
 	}
 
+	/* NOLINTNEXTLINE(cert-err34-c) */
 	if (1 != sscanf(get_rparam(request, 0), "%d", resourceid) || 0 > *resourceid)
 	{
 		SET_MSG_RESULT(result, IPCS_EINVALRID);
@@ -897,6 +901,7 @@ static int	ipcs_semaphore_details(AGENT_REQUEST *request, AGENT_RESULT *result)
 
 ZBX_METRIC	*zbx_module_item_list(void)
 {
+	/* NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) */
 	static ZBX_METRIC	keys[] =
 	/*	KEY				FLAG		FUNCTION			TEST PARAMETERS */
 	{

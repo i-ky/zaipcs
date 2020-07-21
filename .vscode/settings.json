@@ -1,0 +1,11 @@
+{
+  "cpp.clangTidy": true,
+  "cpp.clangTidyChecks": "*,-cppcoreguidelines-init-variables,-*-braces-around-statements,-*-magic-numbers,-readability-isolate-declaration,-hicpp-signed-bitwise,-google-readability-todo",
+  "files.associations": {
+    "*.h": "c"
+  },
+  "[c]": {
+    "editor.insertSpaces": false,
+    "editor.tabSize": 8
+  }
+}

@@ -34,3 +34,6 @@
 
 # Compilations database
 compile_commands.json
+
+# clangd index
+.clangd/
