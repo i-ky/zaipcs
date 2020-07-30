@@ -20,5 +20,5 @@ script:
 - export CONFIG=zabbix/conf/zabbix_agentd.conf
 - echo "LoadModulePath=$PWD" >> $CONFIG
 - echo 'LoadModule=zaipcs.so' >> $CONFIG
-- diff --unified --label actual <($AGENT -C $CONFIG -t 'agent.ping') --label expected <(echo '1') && echo '[  OK  ]'
-- diff --unified --label actual <($AGENT -C $CONFIG -t 'agent.ping') --label expected <(echo '0') && echo '[  OK  ]'
+- diff --unified --label actual <($AGENT --config $CONFIG -t 'agent.ping') --label expected <(echo '1') && echo '[  OK  ]'
+- diff --unified --label actual <($AGENT --config $CONFIG -t 'agent.ping') --label expected <(echo '0') && echo '[  OK  ]'
