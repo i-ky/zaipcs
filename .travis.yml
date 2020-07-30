@@ -11,7 +11,14 @@ before_script:
 - git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 --single-branch --branch $BRANCH
 - cd zabbix
 - ./bootstrap.sh
-- ./configure
+- ./configure --enable-agent
+- make
 - cd -
 script:
 - ZABBIX_SOURCE=zabbix CFLAGS='-Wall -Wextra -Wpedantic -g -O2' make
+- export AGENT=zabbix/src/zabbix_agentd
+- export CONFIG=zabbix/conf/zabbix_agentd.conf
+- echo "LoadModulePath=$PWD" >> $CONFIG
+- echo 'LoadModule=zaipcs.so' >> $CONFIG
+- diff --unified --label actual <($AGENT -C $CONFIG -t 'agent.ping') --label expected <(echo '1') && echo '[  OK  ]'
+- diff --unified --label actual <($AGENT -C $CONFIG -t 'agent.ping') --label expected <(echo '0') && echo '[  OK  ]'
