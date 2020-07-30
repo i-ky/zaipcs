@@ -1,0 +1,2 @@
+agent.ping                                    [u|1]
+agent.version                                 [s|expected to fail]
