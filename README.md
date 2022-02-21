@@ -25,7 +25,9 @@ On Linux it additionally supports
 1. [Download](http://www.zabbix.com/download)
 Zabbix source or check it out from
 [Git repository](https://git.zabbix.com/):
-`git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 /path/to/zabbix/source`
+```bash
+git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 /path/to/zabbix/source
+```
 
 > Any version higher than 2.2 (when loadable module support was added) will do. But you need to compile module using sources of the version you will be using it with!
 
