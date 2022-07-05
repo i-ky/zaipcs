@@ -7,7 +7,6 @@
 #include <sys/msg.h>
 #include <sys/sem.h>
 
-#include "sysinc.h"
 #include "module.h"
 
 /* POSIX.1 requires that the caller define this union. */
