@@ -1,0 +1,15 @@
+Checks: >-
+  *,
+  -altera-*,
+  -bugprone-assignment-in-if-condition,
+  -concurrency-mt-unsafe,
+  -cppcoreguidelines-init-variables,
+  -*-braces-around-statements,
+  -*-magic-numbers,
+  -llvm-include-order,
+  -llvmlibc-*,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -hicpp-signed-bitwise,
+  -google-readability-todo
