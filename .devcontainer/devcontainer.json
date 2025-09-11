@@ -8,5 +8,12 @@
     "containerEnv": {
         "ZABBIX_SOURCE": "/workspaces/zabbix"
     },
-    "onCreateCommand": "git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 \"$ZABBIX_SOURCE\" && cd \"$ZABBIX_SOURCE\" && ./bootstrap.sh && ./configure && cd - && bear -- make"
+    "onCreateCommand": "git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 \"$ZABBIX_SOURCE\" && cd \"$ZABBIX_SOURCE\" && ./bootstrap.sh && ./configure && cd - && bear -- make",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd"
+            ]
+        }
+    }
 }
