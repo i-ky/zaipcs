@@ -1,0 +1,9 @@
+services:
+  agent:
+    image: zabbix/zabbix-agent:ubuntu-${IMAGE-trunk}
+    environment:
+      ZBX_DEBUGLEVEL: 4
+      ZBX_LOADMODULE: zaipcs.so
+      ZBX_PASSIVESERVERS: 127.0.0.1,::1
+    volumes:
+    - ../zaipcs.so:/var/lib/zabbix/modules/zaipcs.so:ro

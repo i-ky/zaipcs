@@ -5,10 +5,14 @@ compiler:
 dist: xenial
 env:
 - BRANCH=master
-- BRANCH=release/7.4
-- BRANCH=release/7.2
-- BRANCH=release/7.0
-- BRANCH=release/6.0
+- BRANCH=release/7.4 IMAGE=7.4-latest
+- BRANCH=release/7.2 IMAGE=7.2-latest
+- BRANCH=release/7.0 IMAGE=7.0-latest
+- BRANCH=release/6.0 IMAGE=6.0-latest
+services:
+- docker
+before_install:
+- pip install pytest
 before_script:
 - git clone https://git.zabbix.com/scm/zbx/zabbix.git --depth 1 --single-branch --branch $BRANCH
 - cd zabbix
@@ -16,4 +20,9 @@ before_script:
 - ./configure
 - cd -
 script:
-- ZABBIX_SOURCE=zabbix CFLAGS='-Wall -Wextra -Wpedantic -g -O2' make
+- ZABBIX_SOURCE=$PWD/zabbix CFLAGS='-Wall -Wextra -Wpedantic -g -O2' make
+- echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+- docker-compose --file tests/compose.yaml up --detach
+- pytest
+after_failure:
+- docker-compose --file tests/compose.yaml logs agent
